@@ -2,26 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+body {
+  font-family: 'Inter', sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+#__next {
+  @apply flex flex-col h-screen;
+}
+
+.container {
+  @apply px-4 mx-auto 2xl:max-w-7xl;
+}
+
+/* React Date Picker Overrides */
+
+.react-datepicker {
+  font-family: 'Inter', sans-serif !important;
+  border-color: #e5e7eb !important;
+}
+
+.react-datepicker__triangle::before {
+  border-bottom-color: #e5e7eb !important;
+}
+
+.react-datepicker__header {
+  background: #f5f5f5 !important;
+  border-bottom-color: #e5e7eb !important;
+}
+
+.react-datepicker-wrapper {
+  width: 100% !important;
+}
+
+@media (min-width: 640px) {
+  .react-datepicker-wrapper {
+    width: auto !important;
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+.react-datepicker__day {
+  border-radius: 9999px !important;
+}
+
+.react-datepicker__day--today {
+  font-weight: normal !important;
+}
+
+.react-datepicker__day--in-range,
+.react-datepicker__day--range-start {
+  @apply !text-white !bg-sky-600;
+}
+
+.react-datepicker__day--in-selecting-range {
+  @apply !bg-sky-600/80;
 }

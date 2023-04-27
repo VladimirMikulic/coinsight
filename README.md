@@ -1,38 +1,57 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# CoinSight
 
-## Getting Started
+![Hashnode](https://img.shields.io/badge/Hashnode-2962FF?style=flat&logo=hashnode&logoColor=white)
+![MindsDB](https://img.shields.io/badge/MindsDB-AI-%2300B06D)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+[![CI](https://github.com/VladimirMikulic/route-list/actions/workflows/ci.yml/badge.svg)](https://github.com/VladimirMikulic/route-list/actions)
+[![Twitter: VladoDev](https://img.shields.io/twitter/follow/VladoDev.svg?style=social)](https://twitter.com/VladoDev)
 
-First, run the development server:
+> ✨ Cryptocurrency price predictions powered by AI.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+![Coinsight showcase](./showcase.png)
+
+## 📦 Development
+
+1. Please create [free](https://cloud.mindsdb.com) MindDB account and then use those credentials to create `.env` file:
+
+```sh
+MINDSDB_USERNAME="MindsDB Account Email"
+MINDSDB_PASSWORD="MindsDB Account Password"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. Upload sample CSV files from `data` folder within this repo to MindsDB Cloud
+4. Run the following snippet to train model for each currency
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+```sql
+CREATE PREDICTOR {{currency}}_predictor
+FROM files
+(SELECT * FROM {{currency}})
+PREDICT price
+```
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+5. Install dependencies (`yarn install`)
+6. Start development server (`yarn dev`)
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+## 👨 Author
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+**Vladimir Mikulic**
 
-## Learn More
+- Twitter: [@VladoDev](https://twitter.com/VladoDev)
+- Github: [@VladimirMikulic](https://github.com/VladimirMikulic)
+- LinkedIn: [@vladimirmikulic](https://www.linkedin.com/in/vladimir-mikulic/)
 
-To learn more about Next.js, take a look at the following resources:
+## 🤝 Contributing
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Contributions, issues and feature requests are welcome!
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## 🍻 Credits
 
-## Deploy on Vercel
+Predictions powered by [MindsDB](https://mindsdb.com).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## ✏️ License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+This project is licensed under [MIT](https://opensource.org/licenses/MIT) license.
+
+## 👨‍🚀 Show your support
+
+Give a ⭐️ if this project helped you!

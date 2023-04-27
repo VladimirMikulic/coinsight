@@ -1,118 +1,169 @@
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
+import Head from 'next/head';
+import {
+  CategoryScale,
+  Chart,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Filler,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+import { GetStaticPropsContext, InferGetStaticPropsType } from 'next';
+import getCurrencyPrices from '@/utils/db';
+import { useState } from 'react';
+import { Currency, CurrencyPriceResult, formatDate } from '@/utils/common';
+import DatePicker from 'react-datepicker';
+import CurrencySelect from '@/components/currencySelect';
 
-const inter = Inter({ subsets: ['latin'] })
+Chart.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Filler
+);
 
-export default function Home() {
+const DAY_SECONDS = 86400;
+
+type Props = InferGetStaticPropsType<typeof getStaticProps>;
+
+export default function Home({
+  initialCurrency,
+  initialPriceResults,
+  initialFromDateInMS,
+  initialToDateInMS,
+}: Props) {
+  const [currency, setCurrency] = useState<Currency>(initialCurrency);
+  const [priceResults, setPriceResults] = useState(initialPriceResults);
+  const [isDataLoading, setIsDataLoading] = useState(false);
+  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
+    new Date(initialFromDateInMS),
+    new Date(initialToDateInMS),
+  ]);
+
+  const loadNewPriceResults = async (
+    currency: Currency,
+    fromDate: Date,
+    toDate: Date
+  ) => {
+    setIsDataLoading(true);
+    try {
+      const response = await fetch(
+        `/api/price/${currency}?fromDate=${formatDate(
+          fromDate
+        )}&toDate=${formatDate(toDate)}`
+      );
+
+      const newPriceResults = (await response.json()) as CurrencyPriceResult[];
+
+      setPriceResults(newPriceResults);
+      setIsDataLoading(false);
+    } catch (error) {
+      setIsDataLoading(false);
+      alert(
+        'Unexpected error occured. Please report this at https://github.com/VladimirMikulic/coinsight.'
+      );
+    }
+  };
+
   return (
-    <main
-      className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
-    >
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">pages/index.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+    <main className="container grow">
+      <Head>
+        <title>
+          CoinSight - Cryptocurreny price predictions powered by AI.
+        </title>
+        <meta
+          name="description"
+          content="Cryptocurreny price predictions powered by AI."
+        />
+        <meta
+          property="og:title"
+          content="CoinSight - Cryptocurreny price predictions powered by AI."
+        />
+        <meta
+          property="og:description"
+          content="Cryptocurreny price predictions powered by AI."
+        />
+      </Head>
+      <div className="flex flex-col sm:flex-row items-center my-6 md:my-10">
+        <h2 className="max-w-xs xl:max-w-none w-64 md:w-auto text-lg md:text-2xl shrink-0 font-bold mr-auto">
+          Cryptocurreny price predictions powered by AI.
+        </h2>
+        <CurrencySelect
+          value={currency}
+          onChange={currency => {
+            setCurrency(currency);
+            // @ts-ignore
+            loadNewPriceResults(currency, ...dateRange);
+          }}
+          disabled={isDataLoading}
+        />
+        <DatePicker
+          onChange={dateRange => {
+            setDateRange(dateRange);
+            if (!dateRange.includes(null)) {
+              // @ts-ignore
+              loadNewPriceResults(currency, ...dateRange);
+            }
+          }}
+          minDate={new Date(initialFromDateInMS)}
+          maxDate={new Date(initialFromDateInMS + 365 * DAY_SECONDS * 1000)}
+          startDate={dateRange[0]}
+          endDate={dateRange[1]}
+          className="!w-full sm:!w-56 h-10 w-60 border rounded-md sm:ml-2 pl-3"
+          selectsRange
+          disabled={isDataLoading}
         />
       </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Discover and deploy boilerplate example Next.js&nbsp;projects.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+      <Line
+        data={{
+          labels: priceResults.map(({ date }) => date),
+          datasets: [
+            {
+              // Double space is required so tooltip label is not squished with left box
+              label: '  Price (USD)',
+              data: priceResults.map(({ price }) => price),
+              borderColor: 'rgba(75, 192, 192)',
+              backgroundColor: 'rgba(75, 192, 192, 0.3)',
+              pointBorderWidth: 4,
+              pointBackgroundColor: 'rgba(75, 192, 192)',
+              pointHoverBackgroundColor: 'rgba(75, 192, 192)',
+              fill: true,
+            },
+          ],
+        }}
+        options={{
+          interaction: {
+            intersect: false,
+          },
+        }}
+        className={`${isDataLoading ? 'animate-pulse' : ''} bg-white`}
+      />
     </main>
-  )
+  );
+}
+
+export async function getStaticProps(context: GetStaticPropsContext) {
+  const initialCurrency: Currency = 'btc';
+  const initialFromDate = new Date(new Date().getTime() + DAY_SECONDS * 1000);
+  const initialToDate = new Date(new Date().getTime() + 7 * DAY_SECONDS * 1000);
+  const initialPriceResults = await getCurrencyPrices(
+    initialCurrency,
+    initialFromDate,
+    initialToDate
+  );
+
+  return {
+    props: {
+      initialCurrency,
+      initialPriceResults,
+      initialFromDateInMS: initialFromDate.getTime(),
+      initialToDateInMS: initialToDate.getTime(),
+    },
+    revalidate: 60,
+  };
 }
