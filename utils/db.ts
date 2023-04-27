@@ -69,7 +69,7 @@ async function retry<T extends (...arg0: any[]) => any>(
       throw e;
     }
     await new Promise(resolve => {
-      setTimeout(resolve, 5000);
+      setTimeout(resolve, 3000);
     });
     return retry(fn, args, maxTry, currRetry + 1);
   }
