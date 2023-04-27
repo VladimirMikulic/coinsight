@@ -28,7 +28,9 @@ const getCurrencyPrices = async (
           );
 
           return MindsDB.SQL.runQuery(
-            `SELECT * FROM mindsdb.${currency}_predictor WHERE date="${formatDate(date)}"`
+            `SELECT * FROM mindsdb.${currency}_predictor WHERE date="${formatDate(
+              date
+            )}"`
           );
         })
     );
@@ -38,7 +40,8 @@ const getCurrencyPrices = async (
       date: result.rows[0].date as string,
     }));
   } catch (error) {
-    return [];
+    console.error(error);
+    throw error;
   }
 };
 
