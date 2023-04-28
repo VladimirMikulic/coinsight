@@ -1,5 +1,5 @@
 import { Currency, CurrencyPriceResult, formatDate } from '@/utils/common';
-import MindsDB from 'mindsdb-js-sdk';
+import MindsDB, { SqlQueryResult } from 'mindsdb-js-sdk';
 
 const getCurrencyPrices = async (
   currency: Currency,
@@ -27,15 +27,7 @@ const getCurrencyPrices = async (
             new Date(fromDate).getTime() + index * 86400 * 1000
           );
 
-          return retry(
-            MindsDB.SQL.runQuery.bind(MindsDB.SQL),
-            [
-              `SELECT * FROM mindsdb.${currency}_predictor WHERE date="${formatDate(
-                date
-              )}"`,
-            ],
-            10
-          );
+          return getCurrencyPrice(currency, date);
         })
     );
 
@@ -51,27 +43,36 @@ const getCurrencyPrices = async (
 
 // Requests to MindsDB may occasionally fail or return result with an error message
 // In that case, simply retrying will resolve the issue.
-async function retry<T extends (...arg0: any[]) => any>(
-  fn: T,
-  args: Parameters<T>,
-  maxTry: number,
+async function getCurrencyPrice(
+  currency: Currency,
+  date: Date,
   retryCount = 1
-): Promise<Awaited<ReturnType<T>>> {
+): Promise<SqlQueryResult> {
   const currRetry = typeof retryCount === 'number' ? retryCount : 1;
   try {
-    const result = await fn(...args);
+    const result = await MindsDB.SQL.runQuery(
+      `SELECT * FROM mindsdb.${currency}_predictor WHERE date="${formatDate(
+        date
+      )}"`
+    );
+
     if (result.error_message) throw new Error(result.error_message);
     return result;
   } catch (e) {
+    // @ts-ignore Fix for Error: model 'x' is obsolete and needs to be updated. Run 'RETRAIN x;'
+    if (e.message?.includes?.('is obsolete')) {
+      await MindsDB.SQL.runQuery(`RETRAIN ${currency}_predictor`);
+      await new Promise(resolve => setTimeout(resolve, 30000));
+    }
+
     console.log(`Retry ${currRetry} failed.`, e);
-    if (currRetry > maxTry) {
-      console.log(`All ${maxTry} retry attempts exhausted`);
+    if (currRetry > 10) {
+      console.log(`All ${10} retry attempts exhausted`);
       throw e;
     }
-    await new Promise(resolve => {
-      setTimeout(resolve, 3000);
-    });
-    return retry(fn, args, maxTry, currRetry + 1);
+
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    return getCurrencyPrice(currency, date, currRetry + 1);
   }
 }
 
