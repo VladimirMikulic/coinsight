@@ -12,7 +12,11 @@ export default function CurrencySelect({ value, onChange, disabled }: Props) {
   return (
     <Listbox
       value={value}
-      onChange={onChange}
+      onChange={(newValue) => {
+        console.log("CHANGE")
+        if (newValue === value) return;
+        onChange(newValue)
+      }}
       as="div"
       className="relative w-full sm:w-52 my-4 sm:my-0"
       disabled={disabled}

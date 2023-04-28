@@ -49,7 +49,7 @@ const getCurrencyPrices = async (
   }
 };
 
-// Requests to MindsDB may occasionally or return result with an error message
+// Requests to MindsDB may occasionally fail or return result with an error message
 // In that case, simply retrying will resolve the issue.
 async function retry<T extends (...arg0: any[]) => any>(
   fn: T,
