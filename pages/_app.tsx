@@ -15,7 +15,7 @@ export default function App({ Component, pageProps }: AppProps) {
             rel="noopener noreferrer"
             aria-label="Share on Twitter"
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-              'Check out CoinSight: https://coinsight-nu.vercel.appcryptocurrency\n\nPrice predictions powered by AI!'
+              'Check out CoinSight: https://coinsight-production.up.railway.app\n\nPrice predictions powered by AI!'
             )}`}
             className="group mr-2"
           >
